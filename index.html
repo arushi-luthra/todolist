@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List with Status</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #eef2f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url("https://images.pexels.com/photos/7233099/pexels-photo-7233099.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1");
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+            width: 900px;
+            text-align: center;
+            background-color: #f4e8e8ae;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .task-form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            padding: 18px;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+            font-size: 18px;
+        }
+
+        input {
+            width: 50%;
+        }
+
+        select {
+            width: 20%;
+        }
+
+        button {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-left: 10px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #addTaskBtn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #addTaskBtn:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        #editTaskBtn {
+            background-color: #ffc107;
+            color: white;
+            display: none;
+        }
+
+        #editTaskBtn:hover {
+            background-color: #e0a800;
+            transform: scale(1.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th, td {
+            border: 2px solid #ddd;
+            padding: 16px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: bold;
+            color: #555;
+        }
+
+        td {
+            background-color: #fdfdfd;
+            color: #333;
+        }
+
+        td button {
+            padding: 10px 15px;
+            font-size: 16px;
+            margin-left: 5px;
+            border-radius: 6px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .edit-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .remove-btn:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        @media (max-width: 1000px) {
+            .container {
+                width: 100%;
+            }
+
+            input, select {
+                font-size: 16px;
+            }
+
+            button {
+                font-size: 16px;
+            }
+
+            th, td {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .task-form {
+                flex-wrap: wrap;
+            }
+
+            input, select {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            button {
+                width: 48%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>To-Do List with Status</h1>
+
+        <!-- Form for adding/editing tasks, arranged horizontally -->
+        <div class="task-form">
+            <input type="text" id="taskInput" placeholder="Enter a task">
+            <select id="statusSelect">
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+            </select>
+            <button id="addTaskBtn">Add Task</button>
+            <button id="editTaskBtn">Edit Task</button>
+        </div>
+
+        <!-- Task table -->
+        <table id="taskTable">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody">
+                <!-- Task rows will be added dynamically here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Initial empty array to store tasks
+        let tasks = [];
+        let editIndex = null;  // Track which task is being edited
+
+        // Function to render tasks in the table
+        function renderTasks() {
+            const taskTableBody = document.getElementById('taskTableBody');
+            taskTableBody.innerHTML = ''; // Clear the current table rows
+
+            tasks.forEach((task, index) => {
+                // Create a new row
+                const row = document.createElement('tr');
+
+                // Create the task cell
+                const taskCell = document.createElement('td');
+                taskCell.textContent = task.name;
+
+                // Create the status cell
+                const statusCell = document.createElement('td');
+                statusCell.textContent = task.status;
+
+                // Create the action cell (Edit & Remove buttons)
+                const actionCell = document.createElement('td');
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'Edit';
+                editBtn.classList.add('edit-btn');
+                editBtn.onclick = () => loadTaskForEditing(index);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.classList.add('remove-btn');
+                removeBtn.onclick = () => removeTask(index);
+
+                actionCell.appendChild(editBtn);
+                actionCell.appendChild(removeBtn);
+
+                // Append the cells to the row
+                row.appendChild(taskCell);
+                row.appendChild(statusCell);
+                row.appendChild(actionCell);
+
+                // Append the row to the table body
+                taskTableBody.appendChild(row);
+            });
+        }
+
+        // Function to add a task
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const task = taskInput.value.trim();
+            const status = document.getElementById('statusSelect').value;
+
+            if (task !== '') {
+                tasks.push({ name: task, status: status }); // Add task with name and status
+                taskInput.value = ''; // Clear the input field
+                renderTasks(); // Re-render the task table
+            }
+        }
+
+        // Function to load a task into the input field for editing
+        function loadTaskForEditing(index) {
+            const taskInput = document.getElementById('taskInput');
+            const statusSelect = document.getElementById('statusSelect');
+
+            taskInput.value = tasks[index].name; // Load the task name into the input
+            statusSelect.value = tasks[index].status; // Load the status into the select
+            editIndex = index; // Store the index of the task being edited
+
+            // Show the "Edit Task" button and hide the "Add Task" button
+            document.getElementById('addTaskBtn').style.display = 'none';
+            document.getElementById('editTaskBtn').style.display = 'inline';
+        }
+
+        // Function to edit a task
+        function editTask() {
+            const taskInput = document.getElementById('taskInput');
+            const statusSelect = document.getElementById('statusSelect');
+            const updatedTask = taskInput.value.trim();
+            const updatedStatus = statusSelect.value;
+
+            if (updatedTask !== '' && editIndex !== null) {
+                tasks[editIndex] = { name: updatedTask, status: updatedStatus }; // Update task with new name and status
+                taskInput.value = ''; // Clear the input field
+                editIndex = null; // Reset the edit index
+
+                // Show the "Add Task" button and hide the "Edit Task" button
+                document.getElementById('addTaskBtn').style.display = 'inline';
+                document.getElementById('editTaskBtn').style.display = 'none';
+
+                renderTasks(); // Re-render the task table
+            }
+        }
+
+        // Function to remove a task
+        function removeTask(index) {
+            tasks.splice(index, 1); // Remove the task from the array
+            renderTasks(); // Re-render the task table
+        }
+
+        // Event listeners for the buttons
+        document.getElementById('addTaskBtn').addEventListener('click', addTask);
+        document.getElementById('editTaskBtn').addEventListener('click', editTask);
+    </script>
+</body>
+</html>
